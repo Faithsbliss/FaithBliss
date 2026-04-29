@@ -20,9 +20,6 @@ if (!admin.apps.length) {
       "base64"
     ).toString("utf-8");
 
-    // DEBUG: Log the first few chars to check validity (DON'T LOG THE WHOLE KEY)
-    console.log("Decoded Credentials Snippet:", credentialsJsonString.substring(0, 20) + "...");
-
     // 2. Parse the JSON string into the ServiceAccount object
     const serviceAccount = JSON.parse(credentialsJsonString) as ServiceAccount;
 

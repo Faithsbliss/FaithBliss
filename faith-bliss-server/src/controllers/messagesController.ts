@@ -1,10 +1,9 @@
-import { Request, Response } from "express";
 import { db } from "../config/firebase-admin";
 import { ConversationSummary } from "../types/chat";
 import { getUserIdFromRequest } from "./conversationController";
 import { Timestamp } from "firebase-admin/firestore";
 
-export async function createMessage(req: Request, res: Response) {
+export async function createMessage(req: any, res: any) {
   try {
     // Retrieve user ID from request
     const userId = getUserIdFromRequest(req);
