@@ -1,0 +1,47 @@
+{
+  "routes": [
+    {
+      "src": "/__/auth/(.*)",
+      "dest": "https://faithbliss-ade26.firebaseapp.com/__/auth/$1"
+    },
+    {
+      "src": "/__/firebase/init.json",
+      "dest": "https://faithbliss-ade26.firebaseapp.com/__/firebase/init.json"
+    },
+    {
+      "src": "/$",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/about/?$",
+      "dest": "/about/index.html"
+    },
+    {
+      "src": "/contact/?$",
+      "dest": "/contact/index.html"
+    },
+    {
+      "src": "/privacy/?$",
+      "dest": "/privacy/index.html"
+    },
+    {
+      "src": "/terms/?$",
+      "dest": "/terms/index.html"
+    },
+    {
+      "src": "/help/?$",
+      "dest": "/help/index.html"
+    },
+    {
+      "src": "/premium/?$",
+      "dest": "/premium/index.html"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/.*",
+      "dest": "/app-shell.html"
+    }
+  ]
+}

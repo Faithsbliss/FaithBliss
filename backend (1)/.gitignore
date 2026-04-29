@@ -1,0 +1,20 @@
+# Dependencies and build artifacts
+node_modules/
+dist/
+coverage/
+*.log
+
+# Env and secrets
+.env
+.env.*
+!.env.example
+**/firebase-admin-key.json
+*.pem
+*.key
+*.p12
+
+# OS/editor files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

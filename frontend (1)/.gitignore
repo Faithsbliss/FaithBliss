@@ -1,0 +1,14 @@
+node_modules/
+node_modules (1)/
+dist/
+dist-ssr/
+*.log
+.env
+.env.*
+!.env.example
+!.env.production.example
+.gradle-user-home/
+.android-user-home/
+.vscode/
+.idea/
+.DS_Store
