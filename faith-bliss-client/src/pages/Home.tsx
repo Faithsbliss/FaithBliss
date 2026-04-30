@@ -1,20 +1,18 @@
-import { Link } from "react-router-dom"; // <-- CHANGED from 'next/link'
+import { Link } from "react-router-dom";
 import { Globe, Users, Target, Shield, Handshake, BookOpen } from "lucide-react";
 import { useState, useEffect } from "react";
-import FadeIn from "../components/FadeIn"; // <-- IMPORTED our component
+import FadeIn from "../components/FadeIn";
 import { FaithBlissLogo } from "@/components/branding/FaithBlissLogo";
-
-// All &apos; have been replaced with '
-// All &quot; have been replaced with "
 
 export default function Home() {
   const [scrollY, setScrollY] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
-  
-  // Array of background images
-  // IMPORTANT: Place these images in the 'frontend/public' folder
+
+  // Hero backgrounds: add bg1.jpg … bg6.jpg and/or bg.jpg to `public/` in this
+  // Vite app so these URLs resolve in production. Until then, you may see blank
+  // hero slides unless your host injects assets or you switch to remote URLs.
   const backgroundImages = [
     '/bg1.jpg',
     '/bg2.jpg',
@@ -25,13 +23,13 @@ export default function Home() {
     '/bg.jpg'
   ];
 
-  // Love stories data
+  // Illustrative vignettes — not verified member testimonials.
   const loveStories = [
     {
       id: 1,
       initials: "S&D",
       names: "Sarah & David",
-      status: "Engaged 2025",
+      status: "Engaged",
       gradient: "from-purple-500 to-pink-500",
       borderColor: "purple-500",
       textColor: "purple-300",
@@ -347,14 +345,18 @@ export default function Home() {
             </FadeIn>
 
             <FadeIn delay={700}>
-              <div className="group bg-gray-800/50 backdrop-blur-xs rounded-2xl p-6 border border-gray-700 hover:border-teal-500/50 transition-all duration-500 hover:transform hover:scale-105 h-full">
+              <div
+                id="community"
+                className="group bg-gray-800/50 backdrop-blur-xs rounded-2xl p-6 border border-gray-700 hover:border-teal-500/50 transition-all duration-500 hover:transform hover:scale-105 h-full scroll-mt-24"
+              >
                 <div className="flex flex-col items-center text-center space-y-4">
                   <div className="w-16 h-16 bg-linear-to-r from-teal-500 to-cyan-500 rounded-full flex items-center justify-center">
                     <Handshake className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-lg md:text-xl font-bold text-white">Community & Meetups</h3>
+                  <h3 className="text-lg md:text-xl font-bold text-white">Community (rolling out)</h3>
                   <p className="text-sm md:text-base text-gray-300 leading-relaxed">
-                    Go beyond swipes — connect through sub-groups, interest spaces, and safe events for travelers, professionals, creatives, and more.
+                    Beyond profiles and chat, we're adding interest-based ways to connect—so travelers,
+                    professionals, creatives, and more can find people who share their season of life.
                   </p>
                 </div>
               </div>
@@ -371,7 +373,8 @@ export default function Home() {
                 <h3 className="text-xl md:text-3xl font-bold text-white">Faith & Love Resources</h3>
               </div>
               <p className="text-sm md:text-xl text-gray-300 text-left max-w-4xl mx-auto leading-relaxed">
-                Get devotionals, relationship insights, and marriage preparation tools designed to help Christian singles grow in love and faith together.
+                Relationship encouragement and marriage-minded content inside the app—with more articles,
+                tips, and preparation tools as FaithBliss grows.
               </p>
             </div>
           </FadeIn>
@@ -387,7 +390,8 @@ export default function Home() {
                 Love Stories
               </h2>
               <p className="text-md md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-                Real couples who found their forever person through faith, love, and divine timing 
+                Illustrative stories—examples of the faith-centered connections FaithBliss exists to help
+                you pursue (not verified member testimonials).
               </p>
             </div>
           </FadeIn>
@@ -479,7 +483,7 @@ export default function Home() {
           
           <div className="border-t border-gray-800 mt-8 pt-8 text-center space-y-3">
             <p className="text-gray-400">
-              2025 FaithBliss. Built with faith.
+              © {new Date().getFullYear()} FaithBliss. Built with faith.
             </p>
             <p className="text-gray-500 text-sm">
               Powered by <span className="text-blue-400 font-semibold">FutureGRIN</span>

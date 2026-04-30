@@ -5,6 +5,10 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import App from "./App.tsx";
 import Home from "./pages/Home.tsx";
+import AboutPublic from "./pages/AboutPublic.tsx";
+import PrivacyPublic from "./pages/PrivacyPublic.tsx";
+import TermsPublic from "./pages/TermsPublic.tsx";
+import ContactPublic from "./pages/ContactPublic.tsx";
 import "./index.css";
 import Login from "./pages/Login.tsx";
 import SignUp from "./pages/SignUp.tsx";
@@ -42,6 +46,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <Routes>
               {/* Route 1: The Landing Page (No Auth required) */}
               <Route path="/" element={<Home />} />
+              <Route path="/about" element={<AboutPublic />} />
+              <Route path="/privacy" element={<PrivacyPublic />} />
+              <Route path="/terms" element={<TermsPublic />} />
+              <Route path="/contact" element={<ContactPublic />} />
 
               {/* Route 2: Public Routes (Login/Signup) */}
               <Route element={<PublicOnlyRoute />}>
