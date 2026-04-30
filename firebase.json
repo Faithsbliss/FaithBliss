@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "frontend (1)/dist",
+    "public": "faith-bliss-client/dist",
     "ignore": [
       "firebase.json",
       "**/.*",
