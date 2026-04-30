@@ -1,4 +1,4 @@
-// src/controllers/userController.ts (FIRESTORE REWRITE)
+﻿// src/controllers/userController.ts (FIRESTORE REWRITE)
 
 import { Request, Response } from "express";
 import { db, usersCollection } from "../config/firebase-admin"; // Firestore Import
@@ -57,11 +57,6 @@ interface IFirestoreUser {
   // ... all other fields
 }
 
-// Extend Request type to include the Firebase UID
-interface CustomRequest extends Request {
-  userId?: string; // Populated by the Firebase Auth Middleware (Firebase UID)
-}
-
 // Helper to determine if an error has a message property
 function isErrorWithMessage(error: unknown): error is { message: string } {
   return (
@@ -109,7 +104,7 @@ const fetchUserProfile = async (
  * @desc Get the profile data of the currently authenticated user
  * @access Private
  */
-const getMe = async (req: CustomRequest, res: Response) => {
+const getMe = async (req: Request, res: Response) => {
   const firebaseUid = req.userId;
 
   if (!firebaseUid) {
@@ -143,7 +138,7 @@ const getMe = async (req: CustomRequest, res: Response) => {
  * @access Private
  * NOTE: Since we are using Firestore, the ID in the route param should be the Firebase UID.
  */
-const getUserById = async (req: CustomRequest, res: Response) => {
+const getUserById = async (req: Request, res: Response) => {
   // The ID here must be the Firebase UID (the Firestore document ID)
   const userId = req.params.id;
 
@@ -190,7 +185,7 @@ const getUserById = async (req: CustomRequest, res: Response) => {
  * @desc Get a paginated list of all users
  * @access Private
  */
-const getAllUsers = async (req: CustomRequest, res: Response) => {
+const getAllUsers = async (req: Request, res: Response) => {
   const firebaseUid = req.userId;
 
   if (!firebaseUid) {

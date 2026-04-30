@@ -1,17 +1,19 @@
 // src/controllers/authController.ts (FIRESTORE/FIREBASE REWRITE)
 
-import { Request, Response, NextFunction } from 'express';
-import { db } from '../config/firebase-admin'; // Firestore DB instance
-import { DocumentData, DocumentReference } from 'firebase-admin/firestore';
-import { Types } from 'mongoose'; // Still used for internal logic, but not for DB IDs anymore
+import { Request, Response } from 'express';
+import { db } from '../config/firebase-admin';
+import {
+  DocumentData,
+  DocumentReference,
+  FieldValue,
+  Timestamp,
+} from 'firebase-admin/firestore';
 import multer from 'multer';
-import { storage } from '../config/cloudinaryConfig'; // Assuming Cloudinary is still used
+import { storage } from '../config/cloudinaryConfig';
 
 
-// --- FIRESTORE USER TYPE (Simplified for the controller) ---
-// Note: We use the Firebase UID as the document ID.
 export interface IUserProfile extends DocumentData {
-    id: string; // The Firestore Document ID (which is the Firebase UID)
+    id: string;
     name: string;
     email: string;
     gender: string;
@@ -21,10 +23,11 @@ export interface IUserProfile extends DocumentData {
     location?: string;
     profilePhoto1?: string;
     onboardingCompleted: boolean;
-    // Add other fields...
-    likes?: string[]; // Array of Firestore UIDs
+    likes?: string[];
     passes?: string[];
     matches?: string[];
+    createdAt?: Date | Timestamp | FieldValue;
+    updatedAt?: Date | Timestamp | FieldValue;
 }
 // -----------------------------------------------------------
 

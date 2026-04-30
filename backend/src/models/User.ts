@@ -102,16 +102,6 @@ export interface IUser extends Document {
   comparePassword(password: string): Promise<boolean>;
 }
 
-// 💡 EXPRESS REQUEST AUGMENTATION (Updating to use 'userId' from new middleware)
-declare global {
-  namespace Express {
-    interface Request {
-      userId?: string; // The authenticated Firebase UID
-    }
-  }
-}
-// 💡 END NEW AUGMENTATION
-
 const UserSchema: Schema = new Schema(
   {
     // 💡 NEW: Primary unique ID for linking to Firebase

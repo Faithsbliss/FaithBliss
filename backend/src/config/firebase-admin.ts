@@ -2,8 +2,11 @@
 
 import * as admin from "firebase-admin";
 import { ServiceAccount } from "firebase-admin";
-import { Buffer } from "buffer"; // Import Buffer for decoding
-// import * as path from 'path'; // Removed path dependency
+import type {
+  CollectionReference,
+  Firestore,
+} from "firebase-admin/firestore";
+import { Buffer } from "buffer";
 
 const base64Credentials = process.env.FIREBASE_CREDENTIALS_BASE64;
 
@@ -37,12 +40,12 @@ if (!admin.apps.length) {
   }
 }
 
-// FIX: Export 'db' here.
-// Safely export mock if admin failed
-export const db = admin.apps.length ? admin.firestore() : ({} as FirebaseFirestore.Firestore);
+export const db: Firestore = admin.apps.length
+  ? admin.firestore()
+  : ({} as Firestore);
 
-// Firestore user profile collection reference
-export const usersCollection = admin.apps.length ? db.collection("users") : ({} as FirebaseFirestore.CollectionReference);
+export const usersCollection: CollectionReference = admin.apps.length
+  ? db.collection("users")
+  : ({} as CollectionReference);
 
-// Re-export admin for field values, etc.
 export { admin };

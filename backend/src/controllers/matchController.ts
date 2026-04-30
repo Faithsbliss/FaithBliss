@@ -19,6 +19,8 @@ interface IUserProfile extends DocumentData {
   likes?: string[];
   passes?: string[];
   matches?: string[];
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
 }
 
 interface IMatch extends DocumentData {

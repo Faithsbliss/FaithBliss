@@ -1,12 +1,13 @@
-import { IUser } from '../models/User';
+import type { DecodedIdToken } from "firebase-admin/auth";
 
 declare global {
   namespace Express {
     interface Request {
-      user?: IUser & {
-        _id: string; // ✅ Force _id to be a string for controllers
-      };
+      userId?: string;
+      user?: DecodedIdToken;
       isAuthenticated(): boolean;
     }
   }
 }
+
+export {};

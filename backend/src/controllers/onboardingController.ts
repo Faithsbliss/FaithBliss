@@ -2,21 +2,21 @@
 
 import { Request, Response } from 'express';
 import { admin, usersCollection } from '../config/firebase-admin';
-import { DocumentData } from 'firebase-admin/firestore'; 
+import { DocumentData, FieldValue, Timestamp } from 'firebase-admin/firestore';
 
-// --- FIRESTORE USER TYPE ---
 interface IUserProfile extends DocumentData {
-    id: string; // The Firestore Document ID (which is the Firebase UID)
+    id: string;
     name: string;
     email: string;
     profilePhoto1?: string;
     onboardingCompleted: boolean;
-    // ... all other fields
     latitude?: number | null;
     longitude?: number | null;
     minAge?: number;
     maxAge?: number;
     maxDistance?: number;
+    createdAt?: Date | Timestamp | FieldValue;
+    updatedAt?: Date | Timestamp | FieldValue;
 }
 // ----------------------------------------------------------------------
 

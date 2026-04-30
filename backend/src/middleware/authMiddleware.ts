@@ -4,21 +4,6 @@ import { admin } from "../config/firebase-admin"; // ✅ Correct: This matches t
 import { Socket } from "socket.io";
 import { DecodedIdToken } from "firebase-admin/auth";
 
-// ----------------------------------------------------------------
-// 💡 GLOBAL TYPE AUGMENTATION: FIXES TS ERROR 2769
-// This tells TypeScript the final, combined shape of the Express Request object.
-// ----------------------------------------------------------------
-declare global {
-  namespace Express {
-    interface Request {
-      // Full decoded token for advanced checks
-      user?: DecodedIdToken;
-      // Simple UID string for database lookups
-      userId?: string;
-    }
-  }
-}
-
 // Interface for the Socket.IO middleware (Separate, non-conflicting type)
 interface AuthenticatedSocket extends Socket {
   user?: { id: string };
