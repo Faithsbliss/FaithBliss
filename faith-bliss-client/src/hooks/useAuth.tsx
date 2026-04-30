@@ -107,6 +107,25 @@ const fetchUserDataFromFirestore = async (
   // 🛑 DEBUG LOG 2: Successful retrieval
   console.log(`✅ Firestore: Profile retrieved for ${fbUser.uid}.`);
 
+  let birthday: Date | undefined;
+  const rawBirthday = backendData.birthday;
+  if (rawBirthday != null) {
+    if (typeof (rawBirthday as { toDate?: () => Date }).toDate === "function") {
+      try {
+        birthday = (rawBirthday as { toDate: () => Date }).toDate();
+      } catch {
+        birthday = undefined;
+      }
+    } else if (
+      typeof rawBirthday === "object" &&
+      rawBirthday !== null &&
+      "seconds" in rawBirthday &&
+      typeof (rawBirthday as { seconds: number }).seconds === "number"
+    ) {
+      birthday = new Date((rawBirthday as { seconds: number }).seconds * 1000);
+    }
+  }
+
   // 🛑 FIX 2: Map ALL fields from backendData to the complete User interface
   return {
     id: fbUser.uid,
@@ -126,9 +145,7 @@ const fetchUserDataFromFirestore = async (
     longitude: backendData.longitude,
     phoneNumber: backendData.phoneNumber,
     countryCode: backendData.countryCode,
-    birthday: backendData.birthday
-      ? new Date(backendData.birthday.seconds * 1000)
-      : undefined, // Handle Firestore Timestamp
+    birthday,
     fieldOfStudy: backendData.fieldOfStudy,
     profession: backendData.profession,
     faithJourney: backendData.faithJourney,
@@ -160,7 +177,8 @@ export function useAuth() {
   const [isCompletingOnboarding, setIsCompletingOnboarding] = useState(false);
   // 🛑 FIX: Use User interface
   const [user, setUser] = useState<User | null>(null);
-  const [isInitialSignUp, setIsInitialSignUp] = useState(false);
+  /** Set true before email/password `createUser`; listener skips one Firestore hydrate (state already set by directRegister). */
+  const pendingLocalRegistrationRef = useRef(false);
 
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const redirectResultCheckedRef = useRef(false);
@@ -256,7 +274,6 @@ export function useAuth() {
     };
 
     processRedirectResult();
-    setIsLoading(true);
 
     const unsubscribe = onAuthStateChanged(
       auth,
@@ -278,11 +295,13 @@ export function useAuth() {
               `✅ Firebase Token Retrieved: ${token.substring(0, 20)}...`
             );
 
-            if (isInitialSignUp) {
+            // Email/password signup already wrote Firestore + React state; avoid overwriting
+            // with a second getDoc before the listener ordering stabilizes.
+            if (pendingLocalRegistrationRef.current) {
               console.log(
-                "⏳ Auth State Listener: Detected initial sign-up, skipping profile sync (POST already ran)."
+                "⏳ Auth listener: skipping Firestore hydrate (pending local registration)."
               );
-              setIsInitialSignUp(false);
+              pendingLocalRegistrationRef.current = false;
               setIsLoading(false);
               return;
             }
@@ -311,11 +330,56 @@ export function useAuth() {
               localStorage.setItem("user", JSON.stringify(minimalUser));
             }
           } catch (e: any) {
-            // If token fetch or Firestore sync fails, force logout
             console.error("Firebase/Firestore sync failed:", e);
+            const code = e?.code ?? "";
+
+            // Transient network or rules issues should not nuke the whole session—users saw
+            // "failed to load" / bounced to login after a successful Firebase Auth signup.
+            if (
+              fbUser &&
+              (code === "permission-denied" ||
+                code === "unavailable" ||
+                code === "failed-precondition" ||
+                code === "deadline-exceeded")
+            ) {
+              showError(
+                "We could not load your full profile from the database. Check your connection and Firestore rules. You can still try to continue.",
+                "Sync limited"
+              );
+              const token = await fbUser.getIdToken().catch(() => null);
+              if (token) {
+                setAccessToken(token);
+                try {
+                  localStorage.setItem("accessToken", token);
+                } catch {
+                  /* ignore */
+                }
+              }
+              const minimalUser: User = {
+                id: fbUser.uid,
+                email: fbUser.email!,
+                name: fbUser.displayName || "New User",
+                onboardingCompleted: false,
+                age: 0,
+                gender: "MALE",
+                denomination: "",
+                bio: "",
+                location: "",
+              };
+              setUser(minimalUser);
+              localStorage.setItem("user", JSON.stringify(minimalUser));
+              setIsLoading(false);
+              return;
+            }
+
             await signOut(auth);
             setUser(null);
             setAccessToken(null);
+            showError(
+              e?.message ||
+                "Your session could not be restored. Please sign in again.",
+              "Authentication Error"
+            );
           }
         } else {
           // Logged out state
@@ -328,7 +392,7 @@ export function useAuth() {
     );
 
     return () => unsubscribe(); // Cleanup the listener on unmount
-  }, [isInitialSignUp, showError, showSuccess, syncGoogleUserProfile]);
+  }, [showError, showSuccess, syncGoogleUserProfile]);
 
   // -----------------------------------------------------------
   // 🔒 Direct Login
@@ -437,7 +501,7 @@ export function useAuth() {
   const directRegister = useCallback(
     async (credentials: RegisterCredentials) => {
       setIsRegistering(true);
-      setIsInitialSignUp(true);
+      pendingLocalRegistrationRef.current = true;
       try {
         // 1. Create user in Firebase Auth
         const userCredential = await createUserWithEmailAndPassword(
@@ -498,6 +562,7 @@ export function useAuth() {
         } as any;
       } catch (error: any) {
         console.error("Registration failed:", error);
+        pendingLocalRegistrationRef.current = false;
         // If Firestore profile creation fails, ensure Firebase auth is rolled back
         if (auth.currentUser) {
           await signOut(auth);
@@ -506,12 +571,9 @@ export function useAuth() {
         throw error;
       } finally {
         setIsRegistering(false);
-        if (user === null) {
-          setIsInitialSignUp(false);
-        }
       }
     },
-    [showSuccess, showError, user]
+    [showSuccess, showError]
   );
 
   // -----------------------------------------------------------
