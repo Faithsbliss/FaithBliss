@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { StoryGroup } from '../../types/app-stories';
+import { storyUserDisplayName } from '../../types/app-stories';
 import { useStoryStore } from '../../store/storyStore';
 import { useAuthContext } from '../../contexts/AuthContext';
 
@@ -76,7 +77,7 @@ const StoryViewer: React.FC<StoryViewerProps> = ({ initialGroup, allGroups, onCl
     return () => {
       if (timerRef.current) window.cancelAnimationFrame(timerRef.current);
     };
-  }, [currentStory?._id, currentGroup?._id]);
+  }, [currentStory?._id, currentGroup?.user._id]);
 
   useEffect(() => {
     if (isPaused) {
@@ -146,12 +147,12 @@ const StoryViewer: React.FC<StoryViewerProps> = ({ initialGroup, allGroups, onCl
         <div className="absolute top-8 left-4 right-4 z-20 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <img 
-              src={currentGroup.user.profilePhoto1 || "https://via.placeholder.com/40"} 
-              alt={currentGroup.user.name} 
+              src={currentGroup.user.avatar || "https://via.placeholder.com/40"} 
+              alt={storyUserDisplayName(currentGroup.user)} 
               className="w-8 h-8 rounded-full border border-white/50"
             />
             <span className="text-white font-semibold text-sm shadow-black drop-shadow-md">
-              {currentGroup.user.name}
+              {storyUserDisplayName(currentGroup.user)}
             </span>
             <span className="text-white/70 text-xs ml-1">
                {new Date(currentStory.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

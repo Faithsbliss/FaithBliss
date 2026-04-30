@@ -1,4 +1,3 @@
-/* eslint-disable no-irregular-whitespace */
 // src/types/User.ts
 export interface User {
   id: string;

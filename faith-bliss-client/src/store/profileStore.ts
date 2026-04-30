@@ -4,6 +4,53 @@ import { API, type UpdateProfileDto } from '@/services/api';
 import { updateProfileClient, uploadSpecificPhotoClient } from '@/services/api-client';
 import { profileSchema, type ProfileFormValues } from '@/schemas/profileSchema';
 import type { ProfileData } from '@/types/profile';
+import type { UserPreferences } from '@/types/User';
+
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
+
+/** Loose user payload from API, Firestore, or auth before mapping to `ProfileData`. */
+export interface ProfileUserInput {
+  id?: string;
+  _id?: string;
+  email?: string;
+  name?: string;
+  gender?: ProfileData["gender"];
+  /** API/auth may send any string; normalized when saving. */
+  denomination?: string;
+  bio?: string;
+  age?: number;
+  location?: string | { address?: string };
+  latitude?: number | null;
+  longitude?: number | null;
+  phoneNumber?: string;
+  countryCode?: string;
+  birthday?: string | Date;
+  fieldOfStudy?: string;
+  profession?: string;
+  educationLevel?: string;
+  company?: string;
+  smoking?: string;
+  drinking?: string;
+  kids?: string;
+  height?: number;
+  faithJourney?: string;
+  sundayActivity?: string;
+  lookingFor?: string[];
+  hobbies?: string[];
+  values?: string[];
+  favoriteVerse?: string;
+  profilePhoto1?: string;
+  profilePhoto2?: string;
+  profilePhoto3?: string;
+  profilePhoto4?: string;
+  profilePhoto5?: string;
+  profilePhoto6?: string;
+  isVerified?: boolean;
+  onboardingCompleted?: boolean;
+  preferences?: UserPreferences;
+}
 
 interface ProfileState {
   profile: ProfileData | null;
@@ -15,7 +62,7 @@ interface ProfileState {
 
   // Actions
   fetchProfile: (userId?: string) => Promise<void>;
-  hydrateFromUser: (user: any) => void;
+  hydrateFromUser: (user: ProfileUserInput) => void;
   initDraft: () => void;
   updateDraft: (data: Partial<ProfileFormValues>) => void;
   saveProfile: (accessToken: string) => Promise<void>;
@@ -24,7 +71,7 @@ interface ProfileState {
   clearMessage: () => void;
 }
 
-const mapUserToProfileData = (user: any): ProfileData => {
+const mapUserToProfileData = (user: ProfileUserInput): ProfileData => {
   const photos = [
     user.profilePhoto1,
     user.profilePhoto2,
@@ -34,32 +81,44 @@ const mapUserToProfileData = (user: any): ProfileData => {
     user.profilePhoto6,
   ].filter(Boolean) as string[];
 
+  const birthdayStr =
+    user.birthday instanceof Date
+      ? user.birthday.toISOString()
+      : typeof user.birthday === "string"
+        ? user.birthday
+        : undefined;
+
   return {
-    id: user.id || user._id,
-    email: user.email,
-    name: user.name,
+    id: String(user.id ?? user._id ?? ""),
+    email: user.email ?? "",
+    name: user.name ?? "User",
     gender: user.gender,
     age: user.age,
-    denomination: user.denomination,
+    denomination: user.denomination as ProfileData["denomination"],
     bio: user.bio,
-    location: user.location ? { 
-        address: typeof user.location === 'string' ? user.location : user.location.address || '',
-        latitude: user.latitude,
-        longitude: user.longitude 
-    } : undefined,
+    location: user.location
+      ? {
+          address:
+            typeof user.location === "string"
+              ? user.location
+              : user.location.address ?? "",
+          latitude: user.latitude ?? null,
+          longitude: user.longitude ?? null,
+        }
+      : undefined,
     phoneNumber: user.phoneNumber,
     countryCode: user.countryCode,
-    birthday: user.birthday,
+    birthday: birthdayStr,
     fieldOfStudy: user.fieldOfStudy,
     profession: user.profession,
     educationLevel: user.educationLevel,
     company: user.company,
-    smoking: user.smoking,
-    drinking: user.drinking,
+    smoking: user.smoking as ProfileData["smoking"],
+    drinking: user.drinking as ProfileData["drinking"],
     kids: user.kids,
     height: user.height,
-    faithJourney: user.faithJourney,
-    sundayActivity: user.sundayActivity,
+    faithJourney: user.faithJourney as ProfileData["faithJourney"],
+    sundayActivity: user.sundayActivity as ProfileData["sundayActivity"],
     lookingFor: user.lookingFor || [],
     hobbies: user.hobbies || [],
     values: user.values || [],
@@ -86,16 +145,16 @@ export const useProfileStore = create<ProfileState>()(
         const user = await API.User.getMe();
         const profileData = mapUserToProfileData(user);
         set({ profile: profileData, isLoading: false });
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Failed to fetch profile:', error);
         set({ 
           isLoading: false, 
-          errors: { global: error.message || 'Failed to load profile' } 
+          errors: { global: errorMessage(error, 'Failed to load profile') } 
         });
       }
     },
 
-    hydrateFromUser: (user: any) => {
+    hydrateFromUser: (user: ProfileUserInput) => {
       if (!user) return;
       const { profile } = get();
       // Only hydrate if we don't already have a profile from the API.
@@ -126,8 +185,8 @@ export const useProfileStore = create<ProfileState>()(
           profession: profile.profession,
           educationLevel: profile.educationLevel,
           company: profile.company,
-          smoking: profile.smoking as any,
-          drinking: profile.drinking as any,
+          smoking: profile.smoking as ProfileFormValues["smoking"],
+          drinking: profile.drinking as ProfileFormValues["drinking"],
           kids: profile.kids,
           height: profile.height,
           hobbies: profile.hobbies,
@@ -160,8 +219,9 @@ export const useProfileStore = create<ProfileState>()(
       const validation = profileSchema.safeParse(draft);
       if (!validation.success) {
         const fieldErrors: Record<string, string> = {};
-        validation.error.errors.forEach((err) => {
-          if (err.path[0]) fieldErrors[err.path[0].toString()] = err.message;
+        validation.error.issues.forEach((issue) => {
+          const key = issue.path[0];
+          if (key !== undefined) fieldErrors[String(key)] = issue.message;
         });
         set({ isSaving: false, errors: fieldErrors });
         return;
@@ -178,7 +238,9 @@ export const useProfileStore = create<ProfileState>()(
         };
 
         const updatedUser = await updateProfileClient(updatePayload, accessToken);
-        const newProfileData = mapUserToProfileData(updatedUser);
+        const newProfileData = mapUserToProfileData(
+          updatedUser as ProfileUserInput
+        );
         
         set({ 
             profile: newProfileData, 
@@ -190,11 +252,11 @@ export const useProfileStore = create<ProfileState>()(
         // Re-init draft with new data
         get().initDraft();
         
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Failed to save profile:', error);
         set({ 
             isSaving: false, 
-            errors: { global: error.message || 'Failed to save profile' } 
+            errors: { global: errorMessage(error, 'Failed to save profile') } 
         });
       }
     },
@@ -230,13 +292,13 @@ export const useProfileStore = create<ProfileState>()(
         // Refresh full profile to be sure
         await get().fetchProfile();
 
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Photo upload failed:', error);
-        set({ isSaving: false, errors: { photos: error.message || 'Upload failed' } });
+        set({ isSaving: false, errors: { photos: errorMessage(error, 'Upload failed') } });
       }
     },
 
-    removePhoto: async (index, accessToken) => {
+    removePhoto: async (index, _accessToken) => {
        const { profile } = get();
        if (!profile) return;
        
@@ -258,9 +320,9 @@ export const useProfileStore = create<ProfileState>()(
                 }));
            }
            
-       } catch (error: any) {
+       } catch (error: unknown) {
            console.error('Remove photo failed:', error);
-           set({ isSaving: false, errors: { photos: error.message || 'Failed to remove photo' } });
+           set({ isSaving: false, errors: { photos: errorMessage(error, 'Failed to remove photo') } });
        }
     },
     

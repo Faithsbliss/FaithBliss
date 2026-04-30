@@ -21,3 +21,9 @@ export type StoryGroup = {
 };
 
 export type UserStoryGroup = StoryGroup;
+
+/** Display name for story rail / viewer (StoryUser uses firstName + lastName). */
+export function storyUserDisplayName(u: StoryUser): string {
+  const full = [u.firstName, u.lastName].filter(Boolean).join(" ").trim();
+  return full || "Member";
+}

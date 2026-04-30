@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Plus } from 'lucide-react';
 import { getApiClient } from '@/services/api-client';
 import { useAuthContext } from '@/contexts/AuthContext';
 import type { StoryGroup } from '@/types/app-stories';
+import { storyUserDisplayName } from '@/types/app-stories';
 import StoryAvatar from './StoryAvatar';
 import StoryViewer from './StoryViewer';
 import StoryUploader from './StoryUploader';
-import { useToast } from '@/contexts/ToastContext';
 
 const StoryFeed: React.FC = () => {
   const [storyGroups, setStoryGroups] = useState<StoryGroup[]>([]);
@@ -14,7 +13,6 @@ const StoryFeed: React.FC = () => {
   const [isUploaderOpen, setIsUploaderOpen] = useState(false);
   const [initialGroupIndex, setInitialGroupIndex] = useState(0);
   const { accessToken, user } = useAuthContext();
-  const { showToast } = useToast();
 
   const fetchStories = async () => {
     if (!accessToken) return;
@@ -41,28 +39,10 @@ const StoryFeed: React.FC = () => {
     setIsUploaderOpen(true);
   };
 
-  const handleViewStory = async (storyId: string) => {
-    if (!accessToken) return;
-    try {
-      const apiClient = getApiClient(accessToken);
-      await apiClient.Story.markAsViewed(storyId);
-      
-      // Optimistic update
-      setStoryGroups(prev => prev.map(group => ({
-        ...group,
-        stories: group.stories.map(s => 
-          s._id === storyId ? { ...s, isViewed: true } : s
-        ),
-        // Recalculate hasUnviewed? 
-        // Ideally we should check if ALL are viewed now, but for UI feedback usually just marking the specific story is enough
-        // Or we re-fetch when viewer closes.
-      })));
-    } catch (error) {
-      console.error('Failed to mark story viewed:', error);
-    }
-  };
-
-  const currentUserHasStory = storyGroups.some(g => g.user._id === user?._id);
+  const currentUserId = user?.id;
+  const currentUserHasStory = storyGroups.some(
+    (g) => g.user._id === currentUserId
+  );
 
   return (
     <div className="w-full bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 mb-6">
@@ -73,7 +53,7 @@ const StoryFeed: React.FC = () => {
            <StoryAvatar 
              name="Add Story"
              isSelf={true}
-             image={user?.photo1} // Use user's avatar
+             image={user?.profilePhoto1}
              onClick={handleCreateClick}
            />
         )}
@@ -82,10 +62,14 @@ const StoryFeed: React.FC = () => {
         {storyGroups.map((group, index) => (
           <StoryAvatar
             key={group.user._id}
-            name={group.user._id === user?._id ? "My Story" : group.user.firstName}
+            name={
+              group.user._id === currentUserId
+                ? "My Story"
+                : storyUserDisplayName(group.user)
+            }
             image={group.user.avatar}
             isViewed={!group.hasUnviewed}
-            isSelf={group.user._id === user?._id}
+            isSelf={group.user._id === currentUserId}
             onClick={() => handleStoryClick(index)}
           />
         ))}
@@ -94,13 +78,14 @@ const StoryFeed: React.FC = () => {
       {/* Modals */}
       {isViewerOpen && storyGroups.length > 0 && (
         <StoryViewer
-          storyGroups={storyGroups}
-          initialStoryGroupIndex={initialGroupIndex}
+          initialGroup={
+            storyGroups[initialGroupIndex] ?? storyGroups[0]
+          }
+          allGroups={storyGroups}
           onClose={() => {
-              setIsViewerOpen(false);
-              fetchStories(); // Refresh to update viewed status rings
+            setIsViewerOpen(false);
+            fetchStories();
           }}
-          onViewStory={handleViewStory}
         />
       )}
 

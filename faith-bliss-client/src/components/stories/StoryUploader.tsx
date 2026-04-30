@@ -17,7 +17,7 @@ const StoryUploader: React.FC<StoryUploaderProps> = ({ onClose, onUploadSuccess 
   const [caption, setCaption] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { showToast } = useToast();
+  const { showSuccess, showError } = useToast();
   const { accessToken } = useAuthContext();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,12 +67,12 @@ const StoryUploader: React.FC<StoryUploaderProps> = ({ onClose, onUploadSuccess 
         caption
       });
 
-      showToast('Story posted successfully!', 'success');
+      showSuccess('Story posted successfully!', 'Done');
       onUploadSuccess();
       onClose();
     } catch (error) {
       console.error('Upload error:', error);
-      showToast('Failed to post story', 'error');
+      showError('Failed to post story', 'Upload error');
     } finally {
       setIsUploading(false);
     }

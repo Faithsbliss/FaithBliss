@@ -5,6 +5,7 @@ import CreateStoryModal from './CreateStoryModal';
 import { useAuthContext } from '../../contexts/AuthContext';
 import StoryViewer from './StoryViewer';
 import type { StoryGroup } from '../../types/app-stories';
+import { storyUserDisplayName } from '../../types/app-stories';
 
 const StoriesRail: React.FC = () => {
   const { storyGroups, fetchStories, isLoading } = useStoryStore();
@@ -34,20 +35,20 @@ const StoriesRail: React.FC = () => {
     <div className="w-full py-4 bg-white border-b border-gray-100 overflow-x-auto no-scrollbar">
       <div className="flex space-x-4 px-4 min-w-max">
         {/* Current User's "Add Story" Bubble */}
-        <StoryAvatar 
-          image={user?.profilePhoto1 || ""} 
-          name="Your Story" 
-          isAddStory 
-          onClick={handleCreateClick} 
+        <StoryAvatar
+          image={user?.profilePhoto1 || ""}
+          name="Your Story"
+          isSelf
+          onClick={handleCreateClick}
         />
 
         {/* Other Users' Stories */}
         {storyGroups.map((group) => (
           <StoryAvatar
             key={group.user._id}
-            image={group.user.profilePhoto1}
-            name={group.user.name}
-            hasUnviewed={group.hasUnviewed}
+            image={group.user.avatar || ""}
+            name={storyUserDisplayName(group.user)}
+            isViewed={!group.hasUnviewed}
             onClick={() => handleStoryClick(group)}
           />
         ))}

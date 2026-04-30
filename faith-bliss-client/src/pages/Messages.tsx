@@ -3,7 +3,7 @@
 // src/pages/Messages.tsx
 
 import { Suspense } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
 // 1. IMPORT TYPES
@@ -24,46 +24,6 @@ import api from "@/services/axios";
 import { getAuth } from "firebase/auth";
 import { convertFirestoreTimestampToDate } from "@/lib/helpers";
 
-// Define the Session and Image props interfaces
-interface SessionData {
-  user: {
-    id: string;
-    name: string;
-  };
-}
-
-interface OptimizedImageProps {
-  src: string;
-  alt: string;
-  width: number;
-  height: number;
-  className: string;
-}
-
-// Utility to parse URL search parameters from useLocation
-const useViteSearchParams = () => {
-  const location = useLocation();
-  return new URLSearchParams(location.search);
-};
-
-// Custom Image Component
-const OptimizedImage = ({
-  src,
-  alt,
-  width,
-  height,
-  className,
-}: OptimizedImageProps) => (
-  <img
-    src={src}
-    alt={alt}
-    width={width}
-    height={height}
-    className={className}
-    loading="lazy"
-  />
-);
-
 const MessagesContent = () => {
   const navigate = useNavigate();
   const currentUser = getAuth().currentUser?.uid;
@@ -77,8 +37,16 @@ const MessagesContent = () => {
     queryFn: () => api.get("/api/conversations"),
   });
 
-  const conversations = response?.data.data
-    .conversations as ConversationSummary[];
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-gray-900 via-gray-900 to-gray-800 text-white flex items-center justify-center">
+        <p className="text-gray-400">Loading conversations…</p>
+      </div>
+    );
+  }
+
+  const conversations = (response?.data?.data?.conversations ??
+    []) as ConversationSummary[];
 
   // Handle error state
   if (error) {

@@ -8,7 +8,6 @@
 import { Link } from "react-router-dom"; // 🌟 VITE FIX 2: Use Link from react-router-dom
 // Remove: import Image from 'next/image'; // 🌟 VITE FIX 3: Replaced with standard <img>
 import {
-  X,
   User,
   MessageCircle,
   Star,

@@ -9,9 +9,6 @@ export default function MatchCard({ match }: { match: Match }) {
   // Fallback logic: Use matchedUser if available, otherwise use the top-level match object
   const user = match.matchedUser || match;
 
-  // Determine the profile link target ID
-  // Prioritize matchedUserId if it exists, otherwise fall back to the top-level match ID
-  const profileId = match.matchedUserId || match.id;
   return (
     <motion.div
       layout

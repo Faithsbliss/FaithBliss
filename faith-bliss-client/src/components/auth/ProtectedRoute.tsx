@@ -27,7 +27,7 @@ export default function ProtectedRoute({
   const { isAuthenticated, isLoading, user } = useAuthContext();
   const navigate = useNavigate();
   const location = useLocation();
-  const { data: userProfile, loading: userLoading } = useUserProfile();
+  const { data: userProfile } = useUserProfile();
 
   const currentUserData = userProfile || user || null;
   const userName = currentUserData?.name || "User";
@@ -78,7 +78,7 @@ export default function ProtectedRoute({
     return <>{children}</>;
   }
 
-  const handleApplyFilters = async (filters: any) => {
+  const handleApplyFilters = async (_filters: unknown) => {
     // setIsLoadingFilters(true);
     // try {
     //   const results = await API.Discovery.filterProfiles(filters);

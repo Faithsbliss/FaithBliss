@@ -56,7 +56,7 @@ export const DashboardPage = ({ user: activeUser }: { user: User }) => {
   const userImage = currentUserData.profilePhoto1 || undefined;
 
   const activeProfiles = useMemo(() => {
-    const hasValidId = (p: User) => Boolean(p && (p.id || p._id));
+    const hasValidId = (p: User) => Boolean(p?.id);
 
     if (filteredProfiles && filteredProfiles.length > 0) {
       return filteredProfiles.filter(hasValidId);

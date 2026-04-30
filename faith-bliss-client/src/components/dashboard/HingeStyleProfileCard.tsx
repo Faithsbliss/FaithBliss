@@ -3,7 +3,7 @@ import type { User } from "@/services/api";
 import { MessageCircle, X } from "lucide-react";
 import { FaithBlissMark } from "@/components/branding/FaithBlissLogo";
 import { NoProfilesState } from "./NoProfilesState";
-import { createRef, useMemo, useRef, useState, type Ref } from "react";
+import { createRef, useMemo, type Ref } from "react";
 
 interface HingeStyleProfileCardProps {
   profiles: User[];
@@ -15,19 +15,16 @@ interface HingeStyleProfileCardProps {
 
 export const HingeStyleProfileCard = ({
   profiles,
-  onGoBack,
+  onGoBack: _onGoBack,
   onPass,
   onLike,
   onMessage,
 }: HingeStyleProfileCardProps) => {
-  // Create a Ref for akk Cards
-  const [currentIndex, setCurrentIndex] = useState(profiles.length - 1);
-  const currentIndexRef = useRef(currentIndex);
   const childRefs = useMemo(
     () =>
       Array(profiles.length)
         .fill(0)
-        .map((item) => createRef()),
+        .map(() => createRef()),
     [profiles.length],
   ) as Ref<any>[];
 
@@ -45,11 +42,11 @@ export const HingeStyleProfileCard = ({
     console.log(myIdentifier + " left the screen");
   };
 
-  function handleLike(dir: string) {
+  function handleLike() {
     onLike();
   }
 
-  function handlePass(dir: string) {
+  function handlePass() {
     onPass();
   }
 
@@ -96,13 +93,13 @@ export const HingeStyleProfileCard = ({
       </div>
       <div className="flex   w-full items-center justify-evenly  h-1/5">
         <div
-          onClick={() => handlePass("left")}
+          onClick={() => handlePass()}
           className="bg-white text-warning-500 hover:scale-110 transition-transform duration-300 rounded-full size-20 grid place-items-center"
         >
           <X size={45} />
         </div>
         <div
-          onClick={() => handleLike("right")}
+          onClick={() => handleLike()}
           className="bg-error-500 hover:scale-110 transition-transform duration-300 rounded-full size-28 grid place-items-center"
         >
           <FaithBlissMark className="w-14 h-14 max-w-[3.75rem]" alt="Like" />

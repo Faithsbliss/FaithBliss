@@ -23,8 +23,9 @@ export const useStoryStore = create<StoryState>((set, get) => ({
     try {
       const groups = await fetchActiveStories();
       set({ storyGroups: groups, isLoading: false });
-    } catch (error: any) {
-      set({ error: error.message || 'Failed to fetch stories', isLoading: false });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to fetch stories';
+      set({ error: message, isLoading: false });
     }
   },
 
@@ -35,30 +36,14 @@ export const useStoryStore = create<StoryState>((set, get) => ({
       // Refresh stories to get the updated list (simplest way to sync)
       await get().fetchStories();
       set({ isUploading: false });
-    } catch (error: any) {
-      set({ error: error.message || 'Failed to upload story', isUploading: false });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to upload story';
+      set({ error: message, isUploading: false });
       throw error;
     }
   },
 
-  markAsViewed: async (storyId, userId) => {
-    // Optimistic update
-    const { storyGroups } = get();
-    const updatedGroups = storyGroups.map((group) => {
-      if (group.user._id === userId) {
-        // Check if there are any other unviewed stories in this group
-        // This is a simplified check; technically we should update the specific story's viewed status
-        // But for the "Has Unviewed" ring, we care if *any* are unviewed.
-        
-        // We'll trust the backend refetch or just let the ring stay until refresh for now,
-        // OR implement deep state update. Let's do a fire-and-forget for the API.
-        return group;
-      }
-      return group;
-    });
-    
-    // Actually, we should update the hasUnviewed flag if we just viewed the last one.
-    // For now, let's just call the API.
+  markAsViewed: async (storyId, _userId) => {
     try {
       await markStoryAsViewed(storyId);
       // We could refetch or update local state deeply here.

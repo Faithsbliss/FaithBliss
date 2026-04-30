@@ -2,13 +2,7 @@
 // src/components/TopBar.tsx (Vite/React Conversion)
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-  Bell,
-  Filter,
-  ArrowLeft,
-  Settings2,
-  Menu,
-} from "lucide-react";
+import { Bell, ArrowLeft, Settings2 } from "lucide-react";
 // 🌟 VITE FIX 1: Use Link from react-router-dom
 import { Link, useLocation } from "react-router-dom";
 // import Image from 'next/image'; // 🌟 VITE FIX 2: Replaced with standard <img>
@@ -35,13 +29,13 @@ export const TopBar = ({
   user,
   showFilters = false,
   onToggleFilters,
-  onToggleSidePanel,
+  onToggleSidePanel: _onToggleSidePanel,
   title,
   showBackButton = false,
   onBack,
 }: TopBarProps) => {
   const displayImage =
-    user?.profilePhotos?.photo1 || userImage || "/default-avatar.png";
+    user?.profilePhoto1 || userImage || "/default-avatar.png";
   const { data: unreadData } = useUnreadCount();
   const unreadCount = unreadData?.count || 0;
   const path = useLocation().pathname;
@@ -114,6 +108,11 @@ export const TopBar = ({
               <Settings2 className="w-6 h-6 transition-colors" />
             </button>
           )}
+          <img
+            src={displayImage}
+            alt=""
+            className="w-9 h-9 rounded-full object-cover border border-white/10 hidden sm:block"
+          />
         </div>
       </div>
     </div>

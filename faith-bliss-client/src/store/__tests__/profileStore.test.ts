@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useProfileStore } from '../profileStore';
 import { API } from '@/services/api';
-import { updateProfileClient } from '@/services/api-client';
 
 // Mock dependencies
 vi.mock('@/services/api', () => ({

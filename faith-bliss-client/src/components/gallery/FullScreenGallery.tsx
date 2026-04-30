@@ -116,7 +116,7 @@ export const FullScreenGallery: React.FC<FullScreenGalleryProps> = ({
                 isLoaded ? "opacity-100" : "opacity-0"
             )}
             onLoad={() => setIsLoaded(true)}
-            onTouchEnd={(e) => {
+            onTouchEnd={() => {
                 // Simple swipe detection could go here
             }}
             />

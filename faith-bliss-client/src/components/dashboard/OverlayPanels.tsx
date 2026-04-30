@@ -15,7 +15,7 @@ interface OverlayPanelsProps {
 
 export const OverlayPanels = ({
   showFilters,
-  showSidePanel,
+  showSidePanel: _showSidePanel,
   userName,
   userImage,
   user,
