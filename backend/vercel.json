@@ -1,11 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "version": 2,
   "buildCommand": "pnpm build",
-  "installCommand": "pnpm install --frozen-lockfile=false",
   "functions": {
     "api/index.js": {
-      "runtime": "@vercel/node@5.3.11",
       "memory": 1024,
       "maxDuration": 30
     }
