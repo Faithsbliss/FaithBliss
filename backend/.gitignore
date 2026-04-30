@@ -20,9 +20,10 @@ yarn-error.log*
 # 2. ENVIRONMENT AND SECRETS (Crucial for your project!)
 # ---------------------------------------------------------------- #
 # Hide all .env files
+# Keep the example file
 .env
 .env.*
-!.env.example # Keep the example file if you have one
+!.env.example
 
 # 🔑 HIDE FIREBASE ADMIN SERVICE ACCOUNT KEY (Most critical!)
 # Ensure this file/path exactly matches what you set in FIREBASE_SERVICE_ACCOUNT_PATH
