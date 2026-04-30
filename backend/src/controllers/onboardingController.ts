@@ -1,7 +1,7 @@
 // src/controllers/onboardingController.ts (FIRESTORE/FIREBASE REWRITE - ROBUST NUMERICAL PARSING)
 
 import { Request, Response } from 'express';
-import { admin, usersCollection } from '../config/firebase-admin';
+import { admin, usersCollection } from '../config/firebase';
 import { DocumentData, FieldValue, Timestamp } from 'firebase-admin/firestore';
 
 interface IUserProfile extends DocumentData {

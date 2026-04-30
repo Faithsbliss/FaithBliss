@@ -1,8 +1,14 @@
 // src/controllers/matchController.ts (FIRESTORE REWRITE + FIXED)
 
 import { Request, Response } from 'express';
-import { db, admin, usersCollection } from '../config/firebase-admin';
-import { DocumentData, CollectionReference, Timestamp } from 'firebase-admin/firestore';
+import {
+  admin,
+  db,
+  matchesCollection,
+  messagesCollection,
+  usersCollection,
+} from '../config/firebase';
+import { DocumentData, Timestamp } from 'firebase-admin/firestore';
 
 // --- FIRESTORE DATA STRUCTURES ---
 
@@ -36,11 +42,6 @@ interface IMessage extends DocumentData {
   content: string;
   createdAt: Timestamp;
 }
-
-// Firestore references
-// Uses the exported 'db' which is either the real Firestore instance or a mock
-const matchesCollection: CollectionReference = db.collection ? db.collection('matches') : ({} as CollectionReference);
-const messagesCollection: CollectionReference = db.collection ? db.collection('messages') : ({} as CollectionReference);
 
 // Helper: safely extract message from unknown error
 function isErrorWithMessage(error: unknown): error is { message: string } {

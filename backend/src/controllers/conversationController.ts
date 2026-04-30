@@ -1,7 +1,7 @@
 // src/controllers/messageController.ts
 
 import { Request, Response } from "express";
-import { db } from "../config/firebase-admin";
+import { db } from "../config/firebase";
 import { ConversationSummary, Message } from "../types/chat";
 import { Timestamp } from "firebase-admin/firestore";
 
@@ -111,9 +111,10 @@ export const getConversationIdByProfileId = async (
     }
 
     // Check if the person user is trying to initiate a chat with exists
+    const profileId = String(req.params.profileId);
     const otherUserDoc = await db
       .collection("users")
-      .doc(req.params.profileId)
+      .doc(profileId)
       .get();
 
     if (!otherUserDoc.exists) {
@@ -329,7 +330,7 @@ export const getConversationMessages = async (
   req: Request,
   res: Response,
 ): Promise<Response> => {
-  const { matchId } = req.params;
+  const matchId = String(req.params.matchId);
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 50;
   const currentUserId = getUserIdFromRequest(req);

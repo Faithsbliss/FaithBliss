@@ -3,7 +3,7 @@ import express from 'express';
 import multer from 'multer';
 import { storage } from '../config/cloudinaryConfig';
 import { protect } from '../middleware/authMiddleware';
-import { db } from '../config/firebase-admin';
+import { db } from '../config/firebase';
 
 const router = express.Router();
 const upload = multer({ storage });

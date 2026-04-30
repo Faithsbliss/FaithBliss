@@ -1,12 +1,10 @@
-// src/routes/messageRoutes.ts (FIXED & CONSOLIDATED)
+// src/routes/conversationRoutes.ts
 import { Router } from "express";
 import { protect } from "../middleware/authMiddleware";
 import {
-  // Importing the real Mongoose implementations from matchController
-  getMatchConversations,
   getUnreadCount,
-  getMatchMessages as getConversationMessages, // Renaming on import for clarity
-} from "../controllers/matchController"; // <-- Pulling real logic from matchController
+  getMatchMessages as getConversationMessages,
+} from "../controllers/matchController";
 import {
   createConversation,
   getAllConversations,

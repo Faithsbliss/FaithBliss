@@ -1,7 +1,7 @@
 // src/controllers/authController.ts (FIRESTORE/FIREBASE REWRITE)
 
 import { Request, Response } from 'express';
-import { db } from '../config/firebase-admin';
+import { db } from '../config/firebase';
 import {
   DocumentData,
   DocumentReference,

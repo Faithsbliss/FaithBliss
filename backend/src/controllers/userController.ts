@@ -1,8 +1,7 @@
 ﻿// src/controllers/userController.ts (FIRESTORE REWRITE)
 
 import { Request, Response } from "express";
-import { db, usersCollection } from "../config/firebase-admin"; // Firestore Import
-import * as admin from "firebase-admin"; // Admin SDK for types
+import { db, usersCollection } from "../config/firebase";
 import { z } from "zod";
 
 // Zod Validation Schema for Profile Updates

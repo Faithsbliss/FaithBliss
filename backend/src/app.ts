@@ -2,10 +2,12 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
-import mongoose from "mongoose";
 import multer from "multer";
 import path from "path";
 
+dotenv.config();
+
+import { db } from "./config/firebase";
 import authRoutes from "./routes/authRoutes";
 import conversationRoutes from "./routes/conversationRoutes";
 import matchRoutes from "./routes/matchRoutes";
@@ -16,18 +18,15 @@ import uploadRoutes from "./routes/uploadRoutes";
 import userRoutes from "./routes/userRoutes";
 import { protect } from "./middleware/authMiddleware";
 
-dotenv.config();
-
 const app = express();
 
 const parseOriginList = (...values: Array<string | undefined>) =>
-  values
-    .flatMap((value) =>
-      String(value || "")
-        .split(",")
-        .map((entry) => entry.trim())
-        .filter(Boolean),
-    );
+  values.flatMap((value) =>
+    String(value || "")
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean),
+  );
 
 const allowedOrigins = Array.from(
   new Set(
@@ -42,28 +41,6 @@ const allowedOrigins = Array.from(
     ),
   ),
 );
-
-let isMongoConnectionReady = false;
-
-export const connectDB = async () => {
-  if (isMongoConnectionReady || mongoose.connection.readyState === 1) {
-    return;
-  }
-
-  const mongoUri = process.env.MONGO_URI;
-  if (!mongoUri) {
-    console.warn("MONGO_URI not defined. Running without database connection.");
-    return;
-  }
-
-  try {
-    await mongoose.connect(mongoUri);
-    isMongoConnectionReady = true;
-    console.log("MongoDB connected successfully");
-  } catch (error) {
-    console.error("MongoDB connection failed:", error);
-  }
-};
 
 app.use(
   cors({
@@ -80,9 +57,31 @@ app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 app.get("/api/health", (_req: any, res: any) => {
   res.status(200).json({
     status: "Server Running",
-    database: mongoose.connection.readyState === 1 ? "Connected" : "Disconnected",
+    database: "Firestore",
     service: "Faithbliss Backend",
   });
+});
+
+// Test endpoint to verify Firestore connectivity end-to-end.
+app.get("/api/test", async (_req: any, res: any) => {
+  try {
+    await db.collection("test").doc("connection").set({
+      status: "working",
+      timestamp: new Date().toISOString(),
+    });
+
+    const snapshot = await db.collection("test").doc("connection").get();
+
+    return res.status(200).json({
+      message: "Firestore connection successful",
+      data: snapshot.data(),
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return res
+      .status(500)
+      .json({ message: `Firestore connection failed: ${message}` });
+  }
 });
 
 app.use("/api/auth", authRoutes);

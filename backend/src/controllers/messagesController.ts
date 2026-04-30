@@ -1,4 +1,4 @@
-import { db } from "../config/firebase-admin";
+import { db } from "../config/firebase";
 import { ConversationSummary } from "../types/chat";
 import { getUserIdFromRequest } from "./conversationController";
 import { Timestamp } from "firebase-admin/firestore";

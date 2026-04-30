@@ -1,136 +1,193 @@
-import { Request, Response } from 'express';
-import StoryModel from '../models/Story';
-import UserModel from '../models/User';
-import { Types } from 'mongoose';
-import { z } from 'zod';
+// src/controllers/storyController.ts (Firestore implementation)
 
-// Zod Schema for Create Story
+import { Request, Response } from "express";
+import { z } from "zod";
+import { Timestamp } from "firebase-admin/firestore";
+import {
+  admin,
+  db,
+  storiesCollection,
+  usersCollection,
+} from "../config/firebase";
+
 const createStorySchema = z.object({
-  mediaUrl: z.string().url({ message: 'Invalid media URL' }),
-  mediaType: z.enum(['image', 'video']).optional().default('image'),
+  mediaUrl: z.string().url({ message: "Invalid media URL" }),
+  mediaType: z.enum(["image", "video"]).optional().default("image"),
 });
 
-// Create a new story
+interface FirestoreStory {
+  id: string;
+  userId: string;
+  mediaUrl: string;
+  mediaType: "image" | "video";
+  viewers: string[];
+  createdAt: Timestamp;
+  expiresAt: Timestamp;
+}
+
+interface FirestoreUserSummary {
+  id: string;
+  name?: string;
+  profilePhoto1?: string;
+}
+
+const toUserSummary = (id: string, data: any): FirestoreUserSummary => ({
+  id,
+  name: data?.name,
+  profilePhoto1: data?.profilePhoto1,
+});
+
 export const createStory = async (req: Request, res: Response) => {
   try {
-    // 1. Validate Input
     const parseResult = createStorySchema.safeParse(req.body);
     if (!parseResult.success) {
-      return res.status(400).json({ 
-        error: 'Validation failed', 
-        details: (parseResult.error as any).errors 
+      return res.status(400).json({
+        error: "Validation failed",
+        details: (parseResult.error as any).errors,
       });
     }
 
     const { mediaUrl, mediaType } = parseResult.data;
-    const firebaseUid = req.userId; // From authMiddleware
+    const uid = req.userId;
 
-    if (!firebaseUid) {
-      return res.status(401).json({ error: 'Unauthorized' });
+    if (!uid) {
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const user = await UserModel.findOne({ firebaseUid });
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+    const userDoc = await usersCollection.doc(uid).get();
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: "User not found" });
     }
 
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+    const now = Timestamp.now();
+    const expiresAt = Timestamp.fromMillis(
+      Date.now() + 24 * 60 * 60 * 1000, // 24 hours from now
+    );
 
-    const story = await StoryModel.create({
-      user: user._id,
+    const newStoryRef = storiesCollection.doc();
+    const storyData: Omit<FirestoreStory, "id"> = {
+      userId: uid,
       mediaUrl,
-      mediaType: mediaType || 'image',
-      expiresAt,
+      mediaType: mediaType || "image",
       viewers: [],
+      createdAt: now,
+      expiresAt,
+    };
+
+    await newStoryRef.set(storyData);
+
+    const userData = userDoc.data();
+    return res.status(201).json({
+      id: newStoryRef.id,
+      ...storyData,
+      user: toUserSummary(uid, userData),
     });
-
-    await story.populate('user', 'name profilePhoto1');
-
-    res.status(201).json(story);
   } catch (error: any) {
-    console.error('Error creating story:', error);
-    res.status(500).json({ error: 'Failed to create story' });
+    console.error("Error creating story:", error);
+    return res.status(500).json({ error: "Failed to create story" });
   }
 };
 
-// Get active stories grouped by user
 export const getActiveStories = async (req: Request, res: Response) => {
   try {
-    const firebaseUid = req.userId;
-    if (!firebaseUid) return res.status(401).json({ error: 'Unauthorized' });
+    const uid = req.userId;
+    if (!uid) return res.status(401).json({ error: "Unauthorized" });
 
-    // Ensure current user exists to get their Mongo ID
-    const currentUser = await UserModel.findOne({ firebaseUid });
-    if (!currentUser) return res.status(404).json({ error: 'User not found' });
+    const currentUserDoc = await usersCollection.doc(uid).get();
+    if (!currentUserDoc.exists) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
-    const now = new Date();
+    const now = Timestamp.now();
+    const snapshot = await storiesCollection
+      .where("expiresAt", ">", now)
+      .orderBy("expiresAt", "asc")
+      .get();
 
-    // Fetch all active stories, populated with user info
-    const stories = await StoryModel.find({ expiresAt: { $gt: now } })
-      .populate('user', 'name profilePhoto1')
-      .sort({ createdAt: 1 }); // Oldest first within a user's stack usually
+    const stories: FirestoreStory[] = snapshot.docs.map(
+      (doc) => ({ id: doc.id, ...(doc.data() as Omit<FirestoreStory, "id">) }),
+    );
 
-    // Group by user
-    const storiesByUser: Record<string, any> = {};
+    // Sort by createdAt ascending (oldest first within a user's stack)
+    stories.sort(
+      (a, b) => a.createdAt.toMillis() - b.createdAt.toMillis(),
+    );
+
+    const userIds = Array.from(new Set(stories.map((story) => story.userId)));
+    const userDocs = await Promise.all(
+      userIds.map((id) => usersCollection.doc(id).get()),
+    );
+
+    const userMap = new Map<string, FirestoreUserSummary>();
+    userDocs.forEach((doc) => {
+      if (doc.exists) {
+        userMap.set(doc.id, toUserSummary(doc.id, doc.data()));
+      }
+    });
+
+    const grouped: Record<
+      string,
+      {
+        user: FirestoreUserSummary;
+        stories: FirestoreStory[];
+        hasUnviewed: boolean;
+      }
+    > = {};
 
     stories.forEach((story) => {
-      const userId = (story.user as any)._id.toString();
-      
-      if (!storiesByUser[userId]) {
-        storiesByUser[userId] = {
-          user: story.user,
+      const user = userMap.get(story.userId);
+      if (!user) return;
+
+      if (!grouped[story.userId]) {
+        grouped[story.userId] = {
+          user,
           stories: [],
           hasUnviewed: false,
         };
       }
 
-      storiesByUser[userId].stories.push(story);
+      grouped[story.userId].stories.push(story);
 
-      // Check if current user has viewed this story
-      const hasViewed = story.viewers.some((viewerId) => 
-        viewerId.toString() === currentUser._id.toString()
-      );
-
-      if (!hasViewed) {
-        storiesByUser[userId].hasUnviewed = true;
+      if (!story.viewers.includes(uid)) {
+        grouped[story.userId].hasUnviewed = true;
       }
     });
 
-    // Convert map to array
-    const result = Object.values(storiesByUser);
-
-    // Sort: Users with unviewed stories first, then by latest story update? 
-    // Usually, the current user is first (if they have stories), then others.
-    // For simplicity, let's just return the list. The frontend can sort.
-    
-    res.status(200).json(result);
+    return res.status(200).json(Object.values(grouped));
   } catch (error: any) {
-    console.error('Error fetching stories:', error);
-    res.status(500).json({ error: 'Failed to fetch stories' });
+    console.error("Error fetching stories:", error);
+    return res.status(500).json({ error: "Failed to fetch stories" });
   }
 };
 
-// Mark story as viewed
 export const markStoryViewed = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const firebaseUid = req.userId;
+    const id = String(req.params.id);
+    const uid = req.userId;
 
-    const user = await UserModel.findOne({ firebaseUid });
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!uid) return res.status(401).json({ error: "Unauthorized" });
 
-    const story = await StoryModel.findById(id);
-    if (!story) return res.status(404).json({ error: 'Story not found' });
-
-    // Add user to viewers if not already present
-    if (!story.viewers.includes(user._id as Types.ObjectId)) {
-      story.viewers.push(user._id as Types.ObjectId);
-      await story.save();
+    const userDoc = await usersCollection.doc(uid).get();
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: "User not found" });
     }
 
-    res.status(200).json({ message: 'Marked as viewed' });
+    const storyRef = storiesCollection.doc(id);
+    const storyDoc = await storyRef.get();
+    if (!storyDoc.exists) {
+      return res.status(404).json({ error: "Story not found" });
+    }
+
+    await storyRef.update({
+      viewers: admin.firestore.FieldValue.arrayUnion(uid),
+    });
+
+    return res.status(200).json({ message: "Marked as viewed" });
   } catch (error: any) {
-    console.error('Error marking story as viewed:', error);
-    res.status(500).json({ error: 'Failed to update story' });
+    console.error("Error marking story as viewed:", error);
+    return res.status(500).json({ error: "Failed to update story" });
   }
 };
+
+// Re-export `db` for any consumer that may need direct access in this module's scope.
+export { db };
