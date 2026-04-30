@@ -1,4 +1,3 @@
-/* eslint-disable no-irregular-whitespace */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useState, useEffect, useMemo } from "react";
@@ -123,7 +122,11 @@ export const DashboardPage = ({ user: activeUser }: { user: User }) => {
     if (currentProfileIndex < activeProfiles.length - 1) {
       setCurrentProfileIndex((prev) => prev + 1);
     } else {
-      filteredProfiles ? showInfo("End of filtered results.") : refetch();
+      if (filteredProfiles) {
+        showInfo("End of filtered results.");
+      } else {
+        refetch();
+      }
       setCurrentProfileIndex(0);
     }
   };
