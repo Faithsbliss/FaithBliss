@@ -7,33 +7,33 @@ import { Buffer } from "buffer"; // Import Buffer for decoding
 
 const base64Credentials = process.env.FIREBASE_CREDENTIALS_BASE64;
 
-if (!base64Credentials) {
-  // Crucial: Throwing an error if the new variable is missing
-  throw new Error("FIREBASE_CREDENTIALS_BASE64 environment variable not set.");
-}
-
 if (!admin.apps.length) {
-  try {
-    // 1. Decode the Base64 string into a JSON string
-    const credentialsJsonString = Buffer.from(
-      base64Credentials,
-      "base64"
-    ).toString("utf-8");
-
-    // 2. Parse the JSON string into the ServiceAccount object
-    const serviceAccount = JSON.parse(credentialsJsonString) as ServiceAccount;
-
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
-    console.log("Firebase Admin SDK initialized successfully."); // Added log for verification
-  } catch (error) {
+  if (!base64Credentials) {
     console.warn(
-      "⚠️ WARNING: Could not initialize Firebase Admin SDK. Backend is running in limited mode."
+      "FIREBASE_CREDENTIALS_BASE64 not set. Firebase Admin disabled; auth-protected routes will fail until configured."
     );
-    console.warn("Reason:", error instanceof Error ? error.message : String(error));
-    // Mock Admin SDK for dev/preview (TEMPORARY FIX)
-    // This allows the server to start but endpoints using admin auth will fail
+  } else {
+    try {
+      const credentialsJsonString = Buffer.from(
+        base64Credentials,
+        "base64"
+      ).toString("utf-8");
+
+      const serviceAccount = JSON.parse(credentialsJsonString) as ServiceAccount;
+
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+      });
+      console.log("Firebase Admin SDK initialized successfully.");
+    } catch (error) {
+      console.warn(
+        "Could not initialize Firebase Admin SDK. Backend is running in limited mode."
+      );
+      console.warn(
+        "Reason:",
+        error instanceof Error ? error.message : String(error)
+      );
+    }
   }
 }
 
