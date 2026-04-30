@@ -1,3 +1,4 @@
+import { Request, Response } from "express";
 import { db } from "../config/firebase";
 import { ConversationSummary } from "../types/chat";
 import { getUserIdFromRequest } from "./conversationController";
@@ -74,3 +75,20 @@ export async function createMessage(req: any, res: any) {
     });
   }
 }
+
+export const getUnreadCount = async (req: Request, res: Response) => {
+  const uid = req.userId;
+  if (!uid) return res.status(401).json({ message: "Not authorized" });
+
+  try {
+    const snapshot = await db.collection("messages")
+      .where("recipientId", "==", uid)
+      .where("read", "==", false)
+      .get();
+
+    return res.status(200).json({ count: snapshot.size });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return res.status(500).json({ message });
+  }
+};
