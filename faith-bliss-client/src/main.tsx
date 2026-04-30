@@ -16,6 +16,11 @@ import Profile from "./pages/Profile.tsx";
 import Messages from "./pages/Messages.tsx";
 import OnboardingRouteWrapper from "./pages/OnboardingPage.tsx";
 import MatchPage from "./pages/MatchesPage.tsx";
+import PremiumPage from "./pages/Premium.tsx";
+import SettingsPage from "./pages/Settings.tsx";
+import HelpPage from "./pages/Help.tsx";
+import ReportPage from "./pages/Report.tsx";
+import DeactivatePage from "./pages/Deactivate.tsx";
 
 // Import the Contexts and Gates
 import { ToastProvider } from "./contexts/ToastContext.tsx";
@@ -74,11 +79,41 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                   <Route path="profile" element={<Profile />} />
 
                   <Route path="matches" element={<MatchPage />} />
+
+                  {/* Side-panel destinations */}
+                  <Route path="premium" element={<PremiumPage />} />
+                  <Route path="settings" element={<SettingsPage />} />
+                  <Route path="help" element={<HelpPage />} />
+                  <Route path="report" element={<ReportPage />} />
+                  <Route path="deactivate" element={<DeactivatePage />} />
                 </Route>
               </Route>
 
               {/* Fallback 404 Route */}
-              <Route path="*" element={<div>404 Not Found</div>} />
+              <Route
+                path="*"
+                element={
+                  <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center px-6">
+                    <div className="text-center max-w-md">
+                      <p className="text-6xl font-bold bg-linear-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent mb-3">
+                        404
+                      </p>
+                      <h1 className="text-2xl font-semibold mb-2">
+                        Page not found
+                      </h1>
+                      <p className="text-gray-400 mb-6">
+                        The page you're looking for doesn't exist or has moved.
+                      </p>
+                      <a
+                        href="/dashboard"
+                        className="inline-block px-5 py-3 rounded-full bg-linear-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 transition-colors font-semibold"
+                      >
+                        Back to dashboard
+                      </a>
+                    </div>
+                  </div>
+                }
+              />
             </Routes>
           </AuthProvider>
         </BrowserRouter>

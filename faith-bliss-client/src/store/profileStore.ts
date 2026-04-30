@@ -15,6 +15,7 @@ interface ProfileState {
 
   // Actions
   fetchProfile: (userId?: string) => Promise<void>;
+  hydrateFromUser: (user: any) => void;
   initDraft: () => void;
   updateDraft: (data: Partial<ProfileFormValues>) => void;
   saveProfile: (accessToken: string) => Promise<void>;
@@ -91,6 +92,19 @@ export const useProfileStore = create<ProfileState>()(
           isLoading: false, 
           errors: { global: error.message || 'Failed to load profile' } 
         });
+      }
+    },
+
+    hydrateFromUser: (user: any) => {
+      if (!user) return;
+      const { profile } = get();
+      // Only hydrate if we don't already have a profile from the API.
+      if (profile) return;
+      try {
+        const profileData = mapUserToProfileData(user);
+        set({ profile: profileData });
+      } catch (error) {
+        console.warn('hydrateFromUser failed:', error);
       }
     },
 

@@ -29,9 +29,9 @@ export default function ProtectedRoute({
   const location = useLocation();
   const { data: userProfile, loading: userLoading } = useUserProfile();
 
-  const currentUserData = userProfile || user;
-  const userName = currentUserData.name || "User";
-  const userImage = currentUserData.profilePhoto1 || undefined;
+  const currentUserData = userProfile || user || null;
+  const userName = currentUserData?.name || "User";
+  const userImage = currentUserData?.profilePhoto1 || undefined;
 
   useEffect(() => {
     if (isLoading) return;
@@ -91,30 +91,37 @@ export default function ProtectedRoute({
     // }
   };
 
-  // If authenticated and passed the *current page* access check, render children
+  // If authenticated and passed the *current page* access check, render children.
+  // The TopBar/OverlayPanels are mobile-only chrome; children render on all
+  // viewports so desktop-only pages (Dashboard via DesktopLayout) and the
+  // shared pages (Profile, Messages, Matches, etc.) are not hidden on `lg+`.
   return (
     <SidebarProvider>
-      <div className="lg:hidden flex flex-1 flex-col h-full  gap-7 no-horizontal-scroll dashboard-main">
-        <TopBar
-          userName={userName}
-          userImage={userImage}
-          user={user}
-          showFilters={showFilters}
-          showSidePanel={showSidePanel}
-          onToggleFilters={() => setShowFilters((prev) => !prev)}
-          onToggleSidePanel={() => setShowSidePanel((prev) => !prev)}
-        />
-        {children}
-        <OverlayPanels
-          showFilters={showFilters}
-          showSidePanel={showSidePanel}
-          userName={userName}
-          userImage={userImage}
-          user={currentUserData}
-          onCloseFilters={() => setShowFilters(false)}
-          onCloseSidePanel={() => setShowSidePanel(false)}
-          onApplyFilters={handleApplyFilters}
-        />
+      <div className="flex flex-1 flex-col h-full gap-7 no-horizontal-scroll dashboard-main">
+        <div className="lg:hidden">
+          <TopBar
+            userName={userName}
+            userImage={userImage}
+            user={user}
+            showFilters={showFilters}
+            showSidePanel={showSidePanel}
+            onToggleFilters={() => setShowFilters((prev) => !prev)}
+            onToggleSidePanel={() => setShowSidePanel((prev) => !prev)}
+          />
+        </div>
+        <div className="flex-1 flex flex-col">{children}</div>
+        <div className="lg:hidden">
+          <OverlayPanels
+            showFilters={showFilters}
+            showSidePanel={showSidePanel}
+            userName={userName}
+            userImage={userImage}
+            user={currentUserData}
+            onCloseFilters={() => setShowFilters(false)}
+            onCloseSidePanel={() => setShowSidePanel(false)}
+            onApplyFilters={handleApplyFilters}
+          />
+        </div>
       </div>
     </SidebarProvider>
   );

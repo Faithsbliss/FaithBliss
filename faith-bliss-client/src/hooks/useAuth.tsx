@@ -247,6 +247,13 @@ export function useAuth() {
             // 1. Get the current, secure ID Token (still needed for any future custom backend calls)
             const token = await fbUser.getIdToken(true);
             setAccessToken(token);
+            // Persist to localStorage so legacy services/api.ts (which reads
+            // localStorage.accessToken) can attach the bearer header.
+            try {
+              localStorage.setItem("accessToken", token);
+            } catch {
+              /* ignore quota / private mode errors */
+            }
 
             console.log(
               `✅ Firebase Token Retrieved: ${token.substring(0, 20)}...`
@@ -432,6 +439,11 @@ export function useAuth() {
         setUser(userToStore);
         setAccessToken(token);
         localStorage.setItem("user", JSON.stringify(userToStore));
+        try {
+          localStorage.setItem("accessToken", token);
+        } catch {
+          /* ignore */
+        }
 
         showSuccess("Account created successfully!", "Registration Successful");
 
@@ -565,6 +577,11 @@ export function useAuth() {
       setUser(userToStore);
       setAccessToken(freshToken);
       localStorage.setItem("user", JSON.stringify(userToStore));
+      try {
+        localStorage.setItem("accessToken", freshToken);
+      } catch {
+        /* ignore */
+      }
     } catch (err) {
       console.error("Refetch user failed:", err);
     }
