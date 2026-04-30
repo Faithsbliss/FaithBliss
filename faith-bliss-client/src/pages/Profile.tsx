@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthContext } from "@/contexts/AuthContext";
 import { useProfileStore } from "@/store/profileStore";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileTabs from "@/components/profile/ProfileTabs";
@@ -12,7 +12,7 @@ import FaithSection from "@/components/profile/FaithSection";
 import SaveButton from "@/components/profile/SaveButton";
 
 const ProfilePage: React.FC = () => {
-  const { accessToken, user } = useAuth();
+  const { accessToken, user } = useAuthContext();
   const {
     fetchProfile,
     hydrateFromUser,

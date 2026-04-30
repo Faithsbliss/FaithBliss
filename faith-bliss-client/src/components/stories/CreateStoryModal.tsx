@@ -2,7 +2,6 @@ import React, { useRef, useState } from 'react';
 import { X, Loader2, Image as ImageIcon } from 'lucide-react';
 import { uploadPhotosToCloudinary } from '../../api/cloudinaryUpload';
 import { useStoryStore } from '../../store/storyStore';
-import { useAuth } from '../../hooks/useAuth';
 
 interface CreateStoryModalProps {
   isOpen: boolean;
@@ -12,9 +11,9 @@ interface CreateStoryModalProps {
 const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ isOpen, onClose }) => {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { addStory, isUploading } = useStoryStore();
-  const { user } = useAuth(); // Assuming this hook gives us the current user
 
   if (!isOpen) return null;
 
@@ -28,23 +27,21 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ isOpen, onClose }) 
 
   const handleUpload = async () => {
     if (!file) return;
+    setError(null);
 
     try {
-      // 1. Upload to Cloudinary
-      // The API expects an array of files, returns array of URLs
       const urls = await uploadPhotosToCloudinary([file]);
       const mediaUrl = urls[0];
+      await addStory(mediaUrl, 'image');
 
-      // 2. Create Story in Backend
-      await addStory(mediaUrl, 'image'); // Defaulting to image for now
-
-      // 3. Cleanup and Close
       setFile(null);
       setPreview(null);
       onClose();
-    } catch (error) {
-      console.error("Upload failed", error);
-      alert("Failed to upload story. Please try again.");
+    } catch (err: unknown) {
+      console.error("Upload failed", err);
+      const message =
+        err instanceof Error ? err.message : "Failed to upload story.";
+      setError(message);
     }
   };
 

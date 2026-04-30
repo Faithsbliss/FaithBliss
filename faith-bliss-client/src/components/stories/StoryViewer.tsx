@@ -3,7 +3,7 @@ import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { StoryGroup } from '../../types/app-stories';
 import { useStoryStore } from '../../store/storyStore';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuthContext } from '../../contexts/AuthContext';
 
 interface StoryViewerProps {
   initialGroup: StoryGroup;
@@ -21,7 +21,7 @@ const StoryViewer: React.FC<StoryViewerProps> = ({ initialGroup, allGroups, onCl
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const { markAsViewed } = useStoryStore();
-  const { user } = useAuth();
+  const { user } = useAuthContext();
   const timerRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
   const pausedAtRef = useRef<number>(0);

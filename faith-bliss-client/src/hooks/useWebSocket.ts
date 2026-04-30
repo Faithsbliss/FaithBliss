@@ -1,10 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState, useRef } from 'react';
 import WebSocketService from '@/services/WebSocketService';
-import { useAuth } from './useAuth';
+import { useAuthContext } from '@/contexts/AuthContext';
 
 export function useWebSocket(): WebSocketService | null {
-  const { accessToken, isAuthenticated } = useAuth();
+  const { accessToken, isAuthenticated } = useAuthContext();
   const [webSocketService, setWebSocketService] = useState<WebSocketService | null>(null);
   const initialized = useRef(false);
 

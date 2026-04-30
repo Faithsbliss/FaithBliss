@@ -2,13 +2,13 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useStoryStore } from '../../store/storyStore';
 import StoryAvatar from './StoryAvatar';
 import CreateStoryModal from './CreateStoryModal';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuthContext } from '../../contexts/AuthContext';
 import StoryViewer from './StoryViewer';
 import type { StoryGroup } from '../../types/app-stories';
 
 const StoriesRail: React.FC = () => {
   const { storyGroups, fetchStories, isLoading } = useStoryStore();
-  const { user } = useAuth();
+  const { user } = useAuthContext();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [activeStoryGroup, setActiveStoryGroup] = useState<StoryGroup | null>(null);
 

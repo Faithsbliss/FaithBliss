@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
-import { useAuth } from "../hooks/useAuth";
+import { useAuthContext } from "../contexts/AuthContext";
 import {
   OnboardingHeader,
   OnboardingNavigation,
@@ -32,11 +32,7 @@ type OnboardingUpdateData = Partial<
 // --- MAIN COMPONENT ---
 const OnboardingPage = () => {
   const navigate = useNavigate();
-  const { completeOnboarding, isCompletingOnboarding, user } = useAuth() as {
-    completeOnboarding: (data: any) => Promise<boolean>;
-    isCompletingOnboarding: boolean;
-    user: { uid?: string | null; id?: string | null } | null;
-  };
+  const { completeOnboarding, isCompletingOnboarding, user } = useAuthContext();
 
   const [currentStep, setCurrentStep] = useState(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -120,7 +116,7 @@ const OnboardingPage = () => {
 
     // --- Final Submission ---
     try {
-      const userId = user?.uid || user?.id;
+      const userId = user?.id;
       if (!userId) throw new Error("User not authenticated.");
 
       // --- UPLOAD PHOTOS TO CLOUDINARY ---

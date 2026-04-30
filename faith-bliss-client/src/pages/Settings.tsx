@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ArrowLeft, Bell, Shield, Eye, Globe, LogOut } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthContext } from "@/contexts/AuthContext";
 
 interface ToggleRowProps {
   icon: React.ComponentType<{ className?: string }>;
@@ -53,7 +53,7 @@ const ToggleRow: React.FC<ToggleRowProps> = ({
 
 const SettingsPageInner: React.FC = () => {
   const navigate = useNavigate();
-  const { logout, isLoggingOut, user } = useAuth();
+  const { logout, isLoggingOut, user } = useAuthContext();
 
   const [pushNotifications, setPushNotifications] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(false);

@@ -3,11 +3,11 @@
 
 import { DashboardPage } from "@/components/dashboard/DashboardPage";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthContext } from "@/contexts/AuthContext";
 
 // The function name should start with a capital letter
 function Dashboard() {
-  const { user } = useAuth(); // Assuming useAuth() returns the User object or null/undefined
+  const { user } = useAuthContext();
 
   // 🌟 FIX: Add a check for user loading/null state 🌟
   if (!user) {

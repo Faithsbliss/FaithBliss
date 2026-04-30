@@ -12,7 +12,7 @@ import {
   Coffee,
   Search,
 } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthContext } from "@/contexts/AuthContext";
 import type { User } from "@/services/api";
 import { GalleryGrid } from "@/components/gallery/GalleryGrid";
 import { FullScreenGallery } from "@/components/gallery/FullScreenGallery";
@@ -32,7 +32,7 @@ const getProfilePhotos = (user: User): string[] => {
 const ProfilePage = () => {
   const { id: profileId } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getUserProfileById, user } = useAuth();
+  const { getUserProfileById, user } = useAuthContext();
 
   const [profile, setProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);

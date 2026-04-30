@@ -19,7 +19,7 @@ import {
   UserX,
   AlertTriangle,
 } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthContext } from "@/contexts/AuthContext";
 import {
   Sidebar,
   SidebarContent,
@@ -50,8 +50,7 @@ export const SidePanel = ({
   console.log("SidePanel user:", user);
   console.log("SidePanel userImage:", userImage);
 
-  // Assuming useAuth returns { logout: function, isLoggingOut: boolean }
-  const { logout, isLoggingOut } = useAuth();
+  const { logout, isLoggingOut } = useAuthContext();
 
   const handleLogout = async () => {
     // Ensure onClose is called after logging out starts or finishes

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/contexts/ToastContext';
 import { getApiClient } from '@/services/api-client';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthContext } from '@/contexts/AuthContext';
 
 interface StoryUploaderProps {
   onClose: () => void;
@@ -18,7 +18,7 @@ const StoryUploader: React.FC<StoryUploaderProps> = ({ onClose, onUploadSuccess 
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { showToast } = useToast();
-  const { accessToken } = useAuth();
+  const { accessToken } = useAuthContext();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];

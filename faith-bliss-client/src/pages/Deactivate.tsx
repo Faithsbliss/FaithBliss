@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ArrowLeft, UserX, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthContext } from "@/contexts/AuthContext";
 
 const consequences = [
   "Your profile will be hidden from discovery",
@@ -12,7 +12,7 @@ const consequences = [
 
 const DeactivatePageInner: React.FC = () => {
   const navigate = useNavigate();
-  const { logout, isLoggingOut, user } = useAuth();
+  const { logout, isLoggingOut, user } = useAuthContext();
   const [confirmText, setConfirmText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

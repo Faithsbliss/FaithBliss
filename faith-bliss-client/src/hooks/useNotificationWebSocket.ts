@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from "react";
 // NOTE: Ensure your Vite config (e.g., tsconfig.json) resolves this path correctly.
 import NotificationWebSocketService from "@/services/notification-websocket";
-import { useAuth } from "./useAuth";
+import { useAuthContext } from "@/contexts/AuthContext";
 import type NotificationWebSocketServiceClass from "@/services/notification-websocket";
 
 // NOTE: We use InstanceType<typeof Class> for a clean type definition.
@@ -17,8 +17,7 @@ type NotificationWebSocketServiceInstance = InstanceType<
  * It connects when the user is authenticated and disconnects on unmount or logout.
  */
 export function useNotificationWebSocket() {
-  // Assumes useAuth is a custom hook providing authentication state
-  const { accessToken, isAuthenticated } = useAuth();
+  const { accessToken, isAuthenticated } = useAuthContext();
 
   const [notificationWebSocketService, setNotificationWebSocketService] =
     useState<NotificationWebSocketServiceInstance | null>(null);

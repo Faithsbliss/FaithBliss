@@ -168,6 +168,25 @@ export function useAuth() {
   const isAuthenticated = !!(accessToken && user);
 
   const syncGoogleUserProfile = useCallback(async (fbUser: FirebaseAuthUser) => {
+    // Eagerly fetch the access token and apply it to React state +
+    // localStorage so that `isAuthenticated` flips to true the moment we
+    // also set the user. This avoids a race where `setUser(...)` lands
+    // before the auth listener finishes its own `getIdToken()` call,
+    // briefly leaving the app in a "user without token" state that makes
+    // PublicOnlyRoute / AuthGate misroute right after the popup closes.
+    let token: string | null = null;
+    try {
+      token = await fbUser.getIdToken(true);
+      setAccessToken(token);
+      try {
+        localStorage.setItem("accessToken", token);
+      } catch {
+        /* ignore quota / private mode errors */
+      }
+    } catch (tokenErr) {
+      console.warn("Could not pre-fetch Firebase ID token:", tokenErr);
+    }
+
     const userProfile = await fetchUserDataFromFirestore(fbUser);
 
     if (!userProfile) {
@@ -345,33 +364,38 @@ export function useAuth() {
   );
 
   // -----------------------------------------------------------
-  // 🚀 Google Sign-In (NEW)
+  // 🚀 Google Sign-In
   // -----------------------------------------------------------
   const signInWithGoogle = useCallback(async () => {
     setIsLoggingIn(true);
     try {
       await setPersistence(auth, browserLocalPersistence);
       const provider = new GoogleAuthProvider();
-      
+      // Always show the account chooser so users on shared devices can
+      // pick the right Google account.
+      provider.setCustomParameters({ prompt: "select_account" });
+
       console.log("A. Google Sign-In: Starting popup...");
       const result = await signInWithPopup(auth, provider);
       const fbUser = result.user;
-      
+
       console.log("B. Google Sign-In: Firebase Auth successful", fbUser.uid);
       const { isNew } = await syncGoogleUserProfile(fbUser);
       showSuccess(
         isNew ? "Account created with Google!" : "Welcome back!",
         isNew ? "Welcome!" : "Login Successful"
       );
-
     } catch (error: any) {
       const code = error?.code as string | undefined;
+
+      // Popup blocked / popup race — fall back to redirect-based sign-in.
       const shouldFallbackToRedirect =
         code === "auth/popup-blocked" ||
         code === "auth/cancelled-popup-request";
 
       if (shouldFallbackToRedirect) {
         const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: "select_account" });
         showSuccess(
           "Popup blocked, continuing with secure redirect...",
           "Continuing Sign-In"
@@ -380,8 +404,25 @@ export function useAuth() {
         return;
       }
 
+      // User-cancelled flows shouldn't surface as scary errors.
+      if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
+        return;
+      }
+
+      // Map common Firebase Auth errors to friendly copy.
+      const friendly =
+        code === "auth/account-exists-with-different-credential"
+          ? "An account already exists with this email using a different sign-in method."
+          : code === "auth/network-request-failed"
+            ? "Network error — please check your connection and try again."
+            : code === "auth/internal-error"
+              ? "Something went wrong on Google's end. Please try again in a moment."
+              : code === "auth/unauthorized-domain"
+                ? "This domain isn't authorized for Google sign-in. Contact support."
+                : error?.message || "Google Sign-In failed.";
+
       console.error("Google Sign-In Error:", error);
-      showError(error.message || "Google Sign-In failed", "Authentication Error");
+      showError(friendly, "Authentication Error");
       throw error;
     } finally {
       setIsLoggingIn(false);

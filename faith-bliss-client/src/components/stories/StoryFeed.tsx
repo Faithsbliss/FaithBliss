@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { getApiClient } from '@/services/api-client';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthContext } from '@/contexts/AuthContext';
 import type { StoryGroup } from '@/types/app-stories';
 import StoryAvatar from './StoryAvatar';
 import StoryViewer from './StoryViewer';
@@ -13,7 +13,7 @@ const StoryFeed: React.FC = () => {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [isUploaderOpen, setIsUploaderOpen] = useState(false);
   const [initialGroupIndex, setInitialGroupIndex] = useState(0);
-  const { accessToken, user } = useAuth();
+  const { accessToken, user } = useAuthContext();
   const { showToast } = useToast();
 
   const fetchStories = async () => {
