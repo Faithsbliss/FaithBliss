@@ -70,13 +70,12 @@ export const TopBar = ({
             to="/dashboard"
             className="flex items-center space-x-4 hover:opacity-80 transition-opacity cursor-pointer"
           >
-            <div className="bg-linear-to-r from-pink-500 to-purple-600 p-1.5 rounded-2xl flex items-center justify-center">
-              <FaithBlissLogo
-                imgProps={{
-                  className: "h-6 w-auto max-w-[5.5rem] shrink-0 object-contain",
-                }}
-              />
-            </div>
+            <FaithBlissLogo
+              imgProps={{
+                className:
+                  "h-9 md:h-10 w-auto max-w-[6.5rem] shrink-0 object-contain",
+              }}
+            />
             <div>
               <h1 className="text-xl capitalize font-bold bg-linear-to-r from-white to-gray-300 bg-clip-text text-transparent">
                 {path === "/dashboard" ? "Discover" : path.replace("/", "")}
